@@ -62,7 +62,7 @@ instance with our user-data:
 
 .. code-block:: shell-session
 
-    $ lxc launch ubuntu:focal my-test --config=user.user-data="$(cat /tmp/my-user-data)"
+    $ lxc launch ubuntu:resolute my-test --config=cloud-init.user-data="$(cat /tmp/my-user-data)"
 
 Verify that cloud-init ran successfully
 -------------------------------------------
@@ -159,4 +159,4 @@ You can also head over to the :ref:`examples page<yaml_examples>` for
 examples of more common use cases.
 
 .. _LXD: https://ubuntu.com/lxd
-.. _other installation options: https://documentation.ubuntu.com/lxd/en/latest/installing/
+.. _other installation options: https://canonical.com/lxd/docs/latest/installing/

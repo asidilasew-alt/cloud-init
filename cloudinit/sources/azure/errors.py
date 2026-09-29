@@ -18,6 +18,10 @@ from cloudinit.url_helper import UrlError
 
 LOG = logging.getLogger(__name__)
 
+# Maximum supported password length for the Azure OSProfile on Linux.
+# https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/create-or-update?view=rest-compute-2026-03-02&tabs=HTTP#osprofile
+MAX_PASSWORD_LENGTH = 72
+
 
 def encode_report(
     data: List[str], delimiter: str = "|", quotechar: str = "'"
@@ -161,11 +165,31 @@ class ReportableErrorImdsInvalidMetadata(ReportableError):
         self.supporting_data["type"] = type(value).__name__
 
 
+class ReportableErrorMissingCustomData(ReportableError):
+    def __init__(
+        self,
+        *,
+        pps_type: str,
+        provisioning_media: str,
+    ) -> None:
+        super().__init__("failure to read customData while hasCustomData=true")
+
+        self.supporting_data["pps_type"] = pps_type
+        self.supporting_data["provisioning_media"] = provisioning_media
+
+
 class ReportableErrorImdsMetadataParsingException(ReportableError):
     def __init__(self, *, exception: ValueError) -> None:
         super().__init__("error parsing IMDS metadata")
 
         self.supporting_data["exception"] = repr(exception)
+
+
+class ReportableErrorImportError(ReportableError):
+    def __init__(self, *, error: ImportError) -> None:
+        super().__init__(f"error importing {error.name} library")
+
+        self.supporting_data["error"] = repr(error)
 
 
 class ReportableErrorOsDiskPpsFailure(ReportableError):
@@ -182,6 +206,18 @@ class ReportableErrorOvfParsingException(ReportableError):
     def __init__(self, *, exception: ET.ParseError) -> None:
         message = exception.msg
         super().__init__(f"error parsing ovf-env.xml: {message}")
+
+
+class ReportableErrorOsProfilePasswordTooLong(ReportableError):
+    def __init__(
+        self, *, length: int, max_length: int = MAX_PASSWORD_LENGTH
+    ) -> None:
+        super().__init__(
+            f"unsupported password length={length} max={max_length}"
+        )
+
+        self.supporting_data["length"] = length
+        self.supporting_data["max_length"] = max_length
 
 
 class ReportableErrorUnhandledException(ReportableError):

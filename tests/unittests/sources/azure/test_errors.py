@@ -211,6 +211,15 @@ def test_imds_metadata_parsing_exception():
     assert error.supporting_data["exception"] == repr(exception)
 
 
+def test_import_error():
+    exception = ImportError("No module named 'foobar'", name="foobar")
+
+    error = errors.ReportableErrorImportError(error=exception)
+
+    assert error.reason == "error importing foobar library"
+    assert error.supporting_data["error"] == repr(exception)
+
+
 def test_ovf_parsing_exception():
     error = None
     try:
@@ -227,6 +236,18 @@ def test_ovf_parsing_exception():
 def test_ovf_invalid_metadata_exception():
     error = errors.ReportableErrorOvfInvalidMetadata(message="foobar")
     assert error.reason == "unexpected metadata parsing ovf-env.xml: foobar"
+
+
+def test_os_profile_password_too_long():
+    length = errors.MAX_PASSWORD_LENGTH + 1
+    error = errors.ReportableErrorOsProfilePasswordTooLong(length=length)
+
+    assert error.reason == (
+        f"unsupported password length={length} "
+        f"max={errors.MAX_PASSWORD_LENGTH}"
+    )
+    assert error.supporting_data["length"] == length
+    assert error.supporting_data["max_length"] == errors.MAX_PASSWORD_LENGTH
 
 
 def test_unhandled_exception():
@@ -257,6 +278,7 @@ def test_unhandled_exception():
         "None",
         None,
     ],
+    ids=["running", "string-none", "none-value"],
 )
 def test_imds_invalid_metadata(value):
     key = "compute"
